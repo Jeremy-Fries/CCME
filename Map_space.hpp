@@ -253,8 +253,8 @@ void Map_space::arrange_quiver(){
     
 // set low and high values quiver values
     high_quiver_fitness=bin_quiver.at(0).fit_rating;
-    low_quiver_fitness=bin_quiver.at(quiver_size).fit_rating;   // ERROR!!!! In bin_quiver both elements are the same... copied in arrange
-    
+    //low_quiver_fitness=bin_quiver.at(quiver_size).fit_rating;   // ERROR!!!! In bin_quiver both elements are the same... copied in arrange
+    low_quiver_fitness=bin_quiver.end()->fit_rating;
 }
 // --------------------------------------------------
 // Compare New Individual

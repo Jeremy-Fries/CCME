@@ -113,8 +113,8 @@ void Wrapper::initialize_wrapper(int FILL, int MUTATE){
     
     /// PHENOTYPE LIMITS
     //- TODO - CCME carrying amount
-    pME->set_map_params(0, 100, 0, 100, 10, 10, FILL, MUTATE);             //-------- To Change Map Settings
-    pME->set_carrying_capacity(150);
+    pME->set_map_params(0, 100, 0, 100, 2, 2, FILL, MUTATE);             //-------- To Change Map Settings
+    pME->set_carrying_capacity(25);
 
     // (dim1_min, dim1_max, dim2_min, dim2_max, resolution 1,2, fill generation, mutate generation)
     //pME->display_Map_params();        // TODO - delete and add print()
