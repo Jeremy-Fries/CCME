@@ -113,8 +113,8 @@ void Wrapper::initialize_wrapper(int FILL, int MUTATE){
     
     /// PHENOTYPE LIMITS
     //- TODO - CCME carrying amount
-    pME->set_map_params(0, 100, 0, 100, 2, 2, FILL, MUTATE);             //-------- To Change Map Settings
-    pME->set_carrying_capacity(25);
+    pME->set_map_params(0, 100, 0, 100, 3, 2, FILL, MUTATE);             //-------- To Change Map Settings
+    pME->set_carrying_capacity(10);
 
     // (dim1_min, dim1_max, dim2_min, dim2_max, resolution 1,2, fill generation, mutate generation)
     //pME->display_Map_params();        // TODO - delete and add print()
@@ -232,7 +232,7 @@ void Wrapper::mutate_MAP(){
     for (int g=0; g<mut_gen; g++){
         
         rand_bin();                             // random bin location
-        ME.individual_from_map(bin1, bin2);     // copy Individual's vectors at bin location
+        ME.individual_from_map(bin1, bin2);     // copy Individual's vectors at bin location    // CHECK to see if Quiver will affect anything.
         ME.challenger.mutate1();
         ME.challenger.mutate2();
         
@@ -283,6 +283,7 @@ void Wrapper::print_stuff(){
     ME.print_corresponding_genome1();
     ME.print_corresponding_genome2();
     ME.print_corresponding_bins();
+    //ME.print_CC_vec();
 }
 // --------------------------------------------------
 void Wrapper::print_entire_map_solution(){  // why does this recalculate all individuals in the bins? Can't it just grab the solutions from memory????????

@@ -99,13 +99,13 @@ public:
     // TODO - write map_prams to txt file
     
 // --------------------------------------------------
-    // Makes Map
+        // Makes Map
     void initialize_map();
     void place_individual_in_map();
     void individual_from_map(int p1, int p2);
     void build_map_from_old(vector<vector<double>>, vector<vector<double>>, vector<vector<int>>);
 // --------------------------------------------------
-    // CCME
+        // CCME
     void set_carrying_capacity(int);
     int get_carrying_capacity();
     void display_carrying_capacity();
@@ -123,12 +123,12 @@ public:
     void arrange_test_CC_vec();
     void test_qsize_correspond();
 // --------------------------------------------------
-    // Create full bin vector
+        // Create full bin vector
     void create_full_bin();
     void find_center_bin(int p1,int p2);
     void find_pheno_dist_to_center_bin(int p1, int p2, int cb1, int cb2);
 // --------------------------------------------------
-    // To text file
+        // To text file
     void print_fit_ratings_of_map();
     void print_best_occupants_fitness();
     void best_fit_bin();
@@ -140,6 +140,7 @@ public:
     void print_corresponding_genome1();
     void print_corresponding_genome2();
     void print_corresponding_bins();
+    void print_CC_vec();      // TODO - J 9/8
 // --------------------------------------------------
     // how many bins are full?
     void how_many_full_bins();
@@ -258,7 +259,7 @@ void Map_Elites::display_resolution2(){
 }
 // --------------------------------------------------
             // Fill Generation
-    // fills Map with individuals for desired amount.
+    /// fills Map with individuals for desired amount.
 void Map_Elites::set_fill_generation(int f){
     fill_generation=f;
 }
@@ -270,7 +271,7 @@ void Map_Elites::display_fill_generation(){
 }
 // --------------------------------------------------
             // Mutate Generation
-    // muatates individuals in Map for desired amount.
+    /// muatates individuals in Map for desired amount.
 void Map_Elites::set_mutate_generation(int m){
     mutate_generation=m;
 }
@@ -282,7 +283,7 @@ void Map_Elites::display_mutate_generation(){
 }
 // --------------------------------------------------
             // Set Map Parameters
-    // Itialization function used outside of class.
+    /// Itialization function used outside of class.
 void Map_Elites::set_map_params(double d1_min, double d1_max, double d2_min, double d2_max, int res1, int res2, int fill_gen, int mutate_gen){
     set_min_dim1(d1_min);
     set_max_dim1(d1_max);
@@ -343,6 +344,261 @@ void Map_Elites::initialize_map(){
         pre_LB2=dim2_min;
     }
     cout << endl << "Map is made" << endl;
+}
+// --------------------------------------------------
+        // Carrying Capacity
+void Map_Elites::set_carrying_capacity(int cc){
+    carrying_capacity_size=cc;
+}
+int Map_Elites::get_carrying_capacity(){
+    return carrying_capacity_size;
+}
+void Map_Elites::display_carrying_capacity(){
+    cout << endl << "carrying_capacity_size is: " << carrying_capacity_size << endl;
+}
+// --------------------------------------------------
+            // Add CC
+void Map_Elites::add_CC(int bid){
+    Carrying_Capacity CC;
+    CC.bin=bid;
+    CC.bin_quiver_size=0;
+    CC_vec.push_back(CC);
+}
+// --------------------------------------------------
+            // Arrange CC
+    /// arrange CC_vec from high to low quiver_size
+bool sort_by_qsize(const Carrying_Capacity& a, const Carrying_Capacity& b){
+    return a.bin_quiver_size > b.bin_quiver_size;
+}
+void Map_Elites::arrange_CC(){
+    sort(CC_vec.begin(), CC_vec.end(), sort_by_qsize);
+}
+// --------------------------------------------------
+            // Calc Current Carrying Capacity
+    /// calculate amount currently being carried
+void Map_Elites::calc_current_carrying_capacity(){
+    int cc_size1=0;
+    int it=0;
+//    for( auto i = CC_vec.begin(); i != CC_vec.end(); i++){
+//        cc_size1=+CC_vec.at(it).bin_quiver_size;
+//        it++;
+//    }
+//    current_carrying_capacity_size=cc_size1;
+    cout << endl << "CC_vec.size() is " << CC_vec.size() << endl;
+    for( int i=0; i < CC_vec.size(); i++){
+        cout << endl << "CC.vec at " << it << ", has quiver_size = " << CC_vec.at(it).bin_quiver_size << " | and ID of " << CC_vec.at(it).bin;
+        cc_size1+=CC_vec.at(it).bin_quiver_size;
+        it++;
+    }
+    current_carrying_capacity_size=cc_size1;
+    
+    cout << endl << "Calc'd current CC is: " << current_carrying_capacity_size << endl;
+}
+// --------------------------------------------------
+                // Calc Carrying bins
+    /// calc # of bins that are in CC_vec
+void Map_Elites::calc_carrying_bins(){
+    int it=0;
+    for( auto i = CC_vec.begin(); i != CC_vec.end(); i++){
+        it++;
+    }
+    carrying_bins=it;
+}
+// --------------------------------------------------
+            // Find ID 0
+    /// finds map_space id of first element in CC_vec
+void Map_Elites::find_id_0(){   // id of first element in CC_Vec will be biggest map_space.
+//    cout << endl << "IN - find_id_0: "  << endl;
+    id_0=CC_vec.at(0).bin;      // ID of most full bin.
+    id_0_row=0;
+    id_0_ele=0;
+    int id_it=0;
+    int id_it_row=0;
+    int id_it_ele=0;
+    for(int d1=0; d1<num_spacing1; d1++){
+        int id_it_ele=0;
+        for(int d2=0; d2<num_spacing2; d2++){
+            if(id_0==id_it){
+                break;
+            }
+            else{
+                id_it++;
+                id_it_ele++;
+            }
+        }
+        if(id_0==id_it){
+            break;
+        }
+        else{
+            id_it_row++;
+        }
+    }
+    id_0_row=id_it_row;
+    id_0_ele=id_it_ele;
+    //cout << endl << "id_0_row is: " << id_0_row << endl;
+    //cout << endl << "id_0_ele is: " << id_0_ele << endl;
+//    cout << endl << "OUT - find_id_0: "  << endl;
+}
+// --------------------------------------------------
+            // Find ID
+    /// finds row and element value based on the ID
+void Map_Elites::find_id(int passed_id){
+    id_row=0;
+    id_ele=0;
+    int id_it=0;
+    int id_it_row=0;
+    int id_it_ele=0;
+    for(int d1=0; d1<num_spacing1; d1++){
+        int id_it_ele=0;
+        for(int d2=0; d2<num_spacing2; d2++){
+            if(passed_id==id_it){
+                break;
+            }
+            else{
+                id_it++;
+                id_it_ele++;
+            }
+        }
+        if(passed_id==id_it){
+            break;
+        }
+        id_it_row++;
+    }
+    id_row=id_it_row;
+    id_ele=id_it_ele;
+}
+// --------------------------------------------------
+            // Find ID end
+    /// Finds the id or bin number for the last element of CC_vec, smallest.
+void Map_Elites::find_id_end(){
+    id_end=CC_vec.end()->bin;   //  TODO- Check to see if works
+    id_end_row=0;
+    id_end_ele=0;
+    int id_it=0;
+    int id_it_row=0;
+    int id_it_ele=0;
+    for(int d1=0; d1<num_spacing1; d1++){
+        int id_it_ele=0;
+        for(int d2=0; d2<num_spacing2; d2++){
+            if(id_end==id_it){
+                break;
+            }
+            else{
+                id_it++;
+                id_it_ele++;
+            }
+        }
+        if(id_end==id_it){
+            break;
+        }
+        id_it_row++;
+    }
+    id_end_row=id_it_row;
+    id_end_ele=id_it_ele;
+}
+// --------------------------------------------------
+            // Find Placement
+    /// find placement of id in CC_vec
+void Map_Elites::find_placement(int passed_id){
+    int id_it=0;
+//    for(auto i = CC_vec.begin(); i != CC_vec.end(); i++){
+//        if(passed_id==CC_vec.at(id_it).bin){
+//            id_element=id_it;
+//        }
+//        else{
+//            id_it++;
+//        }
+//    }
+    for(int i = 0; i < CC_vec.size(); i++){
+        if(passed_id==CC_vec.at(id_it).bin){
+            id_element=id_it;
+            break;
+        }
+        else{
+            id_it++;
+        }
+    }
+    cout << endl << "id_element is: " << id_element << endl;
+}
+// --------------------------------------------------
+            // Check CC
+    /// check to see if id is already in quiver
+bool Map_Elites::check_CC(int passed_id){
+    int id_it=0;
+    int in_CC=0;
+    for(auto i = CC_vec.begin(); i != CC_vec.end(); i++){
+        if(passed_id==CC_vec.at(id_it).bin){
+            in_CC=1;
+            return 0;
+        }
+        else{
+            id_it++;
+        }
+    }
+        return 1;
+}
+// --------------------------------------------------
+            // Dynamic CC
+    /// Contorls the carrying capacity for the map_spaces.
+void Map_Elites::dynamic_CC(int rval, int eval){      // pass bin id
+    cout << endl << "--------------- DYNAMIC IN ---------------";
+    
+    if(check_CC(Map.at(rval).at(eval).id)==1){  // TODO - construct cc vec
+        add_CC(Map.at(rval).at(eval).id);       // TODO- change eval to e_val // correlate
+    }
+    else{
+        cout << endl << "Bin is in CC_vec" << endl;
+    }
+    
+    calc_current_carrying_capacity();  
+    
+    cout << endl << "CHOOSEN Bin ID is " << Map.at(rval).at(eval).id << endl;
+    cout << "ZERO    Bin ID is " << CC_vec.at(0).bin << endl;
+    
+    if (current_carrying_capacity_size < carrying_capacity_size){  /// if carrying capacity IS NOT met.
+        Map.at(rval).at(eval).increase_quiver_size();     // increase quiver size - Map_space
+        //cout << endl << "Increase quiver size of Map at " << Map.at(rval).at(eval).id << " to " << Map.at(rval).at(eval).get_quiver_size() << endl;
+        find_placement(Map.at(rval).at(eval).id);         // find corresponding CC
+        CC_vec.at(id_element).increase_quiver_size();         // increase quiver size - CC
+        //cout << endl << "Correspinding CC_vec is at " << CC_vec.at(id_element).bin << " increased to " << CC_vec.at(id_element).bin_quiver_size << endl;
+        
+        
+        cout << endl << "CC  - + : size " << CC_vec.at(id_element).bin_quiver_size;
+        cout << endl << "Map - + : size " << Map.at(rval).at(eval).quiver_size << endl;
+        arrange_CC();
+    }
+    else if (Map.at(rval).at(eval).id != CC_vec.at(0).bin){     /// if Carrying capactiy IS met, and NOT in most full Map_Space.
+        if(Map.at(rval).at(eval).quiver_size==CC_vec.at(0).bin-1 || Map.at(rval).at(eval).quiver_size>CC_vec.at(0).bin-1){
+            cout << endl << "NOT CHANGING. TOO CLOSE. I DON'T WANT TOO, NOOOOOOO!" << endl;
+        }
+        else{
+            find_id_0();
+            cout << endl << "BEFORE - CC  - at 0 : element is " << CC_vec.at(0).bin << ", with size " << CC_vec.at(0).bin_quiver_size;
+            cout << endl << "BEFORE - Map - at 0 : element is " << Map.at(id_0_row).at(id_0_ele).id << ", with size " << Map.at(id_0_row).at(id_0_ele).quiver_size;
+
+            Map.at(rval).at(eval).increase_quiver_size();                   // increase quiver size of new - Map_space
+            CC_vec.at(0).decrease_quiver_size();                                // decrease quiver size of 0, most full - CC
+            find_id_0();
+//            cout << endl << "ID of Most full is: " << Map.at(id_0_row).at(id_0_ele).id << endl;
+            Map.at(id_0_row).at(id_0_ele).decrease_quiver_size();           // decrease quiver size of 0, and delete last element in bin_quiver- Map_space
+            find_placement(Map.at(rval).at(eval).id);                       // find corresponding CC
+            CC_vec.at(id_element).increase_quiver_size();                       // increase quiver size of new - CC
+            arrange_CC();
+        
+            cout << endl << "AFTER - CC  - 0 : element is " << CC_vec.at(0).bin << ", with size " << CC_vec.at(0).bin_quiver_size;;
+            cout << endl << "AFTER - Map - 0 : element is " << Map.at(id_0_row).at(id_0_ele).id << ", with size " << Map.at(id_0_row).at(id_0_ele).quiver_size;
+            cout << endl << "AFTER - CC  - + : element is " << CC_vec.at(id_element).bin << ", with size " << CC_vec.at(id_element).bin_quiver_size;
+            cout << endl << "AFTER - Map - + : element is " << Map.at(rval).at(eval).id << ", with size " << Map.at(rval).at(eval).quiver_size << endl;
+        }
+    }
+    else{
+        cout << endl << "Carrying Capacity of Bin is full" << endl; // Bin is 0, most full.
+    }
+    // TODO - Run Tests -
+//    - 1) Total carrying capacities correspond. (quick operation)
+//    - 2) CC and Map_space correspond, bin and quiver size for each. (long operation)
+    
+    cout << "--------------- DYNAMIC OUT ---------------" << endl;
 }
 // --------------------------------------------------
             // Place individual
@@ -409,274 +665,42 @@ void Map_Elites::place_individual_in_map(){
     
     //cout << endl << endl << endl << "Placed in row "<< row_value << " column " <<element_value << endl;
     
-    // CCME main function,
+    // ---------- CCME Main Function ---------- Begin
     dynamic_CC(row_value, element_value);
-    // TODO - Run Tests -
-    // - 1) Total carrying capacities correspond. (quick operation)
+        // TODO - Run Tests -
+            // - 1) Total carrying capacities correspond. (quick operation)
+            // - 2) CC and Map_space correspond, bin and quiver size for each. (long operation)
     
-    // - 2) CC and Map_space correspond, bin and quiver size for each. (long operation)
-    // test_qsize_correspond();
+    //test_qsize_correspond(); // TODO - Fix, Runs forever.
     
-    /// compare new individual in map space and erase worse
+    // ---------- CCME Main Function ---------- End
+    
     Map.at(row_value).at(element_value).compare_new_individual(this->challenger);
+        /// compare new individual in map space and erase worse
+        /// Also, controls Carrying Capacity dynamics in Map_Space.
+}
+// --------------------------------------------------
+            // Print CC Vec
+void Map_Elites::print_CC_vec(){
+    ofstream myfile;
+    myfile.open ("CC_vec.txt");
+    for(int i=0; i<CC_vec.size(); i++){
+        myfile << CC_vec.at(i).bin << '\t';
+        myfile << CC_vec.at(i).bin_quiver_size << '\n';
+    }
+    myfile.close();
+    cout << "CC_vec.txt file created." << endl;
 }
 // --------------------------------------------------
 /*
-                CCME Test
+ CCME Test   // TODO
  
-// - 1) Total carrying capacities correspond. (quick operation)
- 
- 
- 
+ - 1) Total carrying capacities correspond. (quick operation)
+ - 2) CC and Map_space correspond, bin and quiver size for each. (long operation)
  
  */
 // --------------------------------------------------
-// create vector of map_spaces, arranged high to low, based on size of quiver.
-// able to change quiver size for bins.
-// 
-// possible soln -> create new class that holds only ID and QUIVER_SIZE. This will take less memory than holding 2 vectors of Map_Spaces.
-    // arranged high to low, based on size of quiver.
-    // once carrying_capacity # is met each addition, (1. of a new ID) or (2. an ID that is less than highest ID) will take a quiver_size from the most full ID.
-
-/*
- How it will work...
-    - function called in place_individual_in_map().
-    - function will first:
- 
- void Map_Space::dynamic_CC(int rval, int eval){      // pass bin id
- 
- 
-    if(check_CC(Map.at(rval).at(eval).id)==0){
-        add_cc(Map.at(rval).at(eval).id);
-    }
-    else{
-        cout << endl << "Bin is in CC_vec" << endl;
-    }
- 
-    calc_current_carrying_capacity();
- 
-    if (current_carrying_capacity_size != carrying_capacity_size){
-        Map.at(rval).at(eval).increase_quiver_size();     // increase quiver size - Map_space
-        find_placement(Map.at(rval).at(eval).id);         // find corresponding CC
-        CC.at(id_element).increase_quiver_size();         // increase quiver size - CC
-    }
-    else if (Map.at(rval).at(eval).id != CC.at(0).id){
-        Map.at(rval).at(eval).increase_quiver_size();                   // increase quiver size of new - Map_space
-        CC.at(0).decrease_quiver_size();                                // decrease quiver size of 0, most full - CC
-        find_id_0();                                                    // find id of CC.at(0)
-        Map.at(id_0_row).at(id_0_ele).decrease_quiver_size();           // decrease quiver size of 0, and delete last element in bin_quiver- Map_space
-        find_placement(Map.at(rval).at(eval).id);                       // find corresponding CC
-        CC.at(id_element).increase_quiver_size();                       // increase quiver size of new - CC
-    }
-    else{
-        cout << endl << "Carrying Capacity of Bin is full" << endl; // Bin is 0, most full.
-    }
-    arrange_CC();
- 
-    // TODO - Run Tests -
-            - 1) Total carrying capacities correspond. (quick operation)
-            - 2) CC and Map_space correspond, bin and quiver size for each. (long operation)
-    }
- 
- 
-    - function will take bin_id of indivdual and pass ID and current quiver_size to Carrying_capacity.
-    - function will ++ current_carrying_capacity_size, untill current_carrying_capacity_size == carrying_capacity_size.
-    - Carrying_capacity will be pushed into a vector <Carring_capacity> CC
-    - vector CC will be arranged high to low, based on quiver_size.
-    - once current_carrying_capacity_size == carrying_capacity_size:
-            - first element in CC (most full) will -1 from quiver_size
-                - CC.at(0).decrease_quiver_size();
-                - CC.at(end??).increase_quiver_size();
-            AND
- 
-            - once ID of CC == ID of Map_space in Map delete last element in bin_quiver.
-                -Map.at(row_value).at(element_value).bin_quiver.erase(bin_quiver.end());
- 
-// --------------------------------------------------
- 
- functions to be used- 
- 
- check_CC()     -   check to see if id is already in quiver
- add_CC()       -   pass id and quiver_size from map_space to new carrying_capacity and push to CC vector.
- arrange_CC()   -   arrange CC from high quiver size to low quiver size.
- find_id()      -   find map_space id corresponding to id of carring_capacity
- calc_current_carrying_capacity()   -   add all quiver_size of occupants of CC together
- dynamic_CC()   -   increase quiver_size of current bin while decreasing (or not if not full) quiver_size of highest bin.
-                        - will operate on Caryying_Capacity before Map_space
- 
- 
- 
- */
-// --------------------------------------------------
-        // Carrying Capacity
-void Map_Elites::set_carrying_capacity(int cc){
-    carrying_capacity_size=cc;
-}
-int Map_Elites::get_carrying_capacity(){
-    return carrying_capacity_size;
-}
-void Map_Elites::display_carrying_capacity(){
-    cout << endl << "carrying_capacity_size is: " << carrying_capacity_size << endl;
-}
-// --------------------------------------------------
-                // Add CC
-void Map_Elites::add_CC(int bid){
-    Carrying_Capacity CC;
-    CC.bin=bid;
-    CC.bin_quiver_size=0;
-    CC_vec.push_back(CC);
-}
-// --------------------------------------------------
-                // Arrange CC
-bool sort_by_qsize(const Carrying_Capacity& a, const Carrying_Capacity& b){
-    return a.bin_quiver_size > b.bin_quiver_size;
-}
-void Map_Elites::arrange_CC(){
-// arrange CC_vec from high to low quiver_size
-    sort(CC_vec.begin(), CC_vec.end(), sort_by_qsize);
-}
-// --------------------------------------------------
-                // Calc Current Carrying Capacity
-// calculate amount currently being carried
-void Map_Elites::calc_current_carrying_capacity(){
-    int cc_size1=0;
-    int it=0;
-    for( auto i = CC_vec.begin(); i != CC_vec.end(); i++){
-        cc_size1=+CC_vec.at(it).bin_quiver_size;
-        it++;
-    }
-    current_carrying_capacity_size=cc_size1;
-}
-// --------------------------------------------------
-                // Calc Carrying bins
-// calc # of bins that are in CC_vec
-void Map_Elites::calc_carrying_bins(){
-    int it=0;
-    for( auto i = CC_vec.begin(); i != CC_vec.end(); i++){
-        it++;
-    }
-    carrying_bins=it;
-}
-// --------------------------------------------------
-                // Find ID 0
-// find map_space id corresponding to id of carring_capacity
-void Map_Elites::find_id_0(){
-    id_0=CC_vec.at(0).bin;
-    id_0_row=0;
-    id_0_ele=0;
-}
-// --------------------------------------------------
-                // Find ID
-void Map_Elites::find_id(int passed_id){
-    int id_it=0;
-    int id_it_row=0;
-    int id_it_ele=0;
-    while(passed_id!=id_it){
-        for(int d1=0; d1<num_spacing1; d1++){
-            id_it_ele=0;
-            for(int d2=0; d2<num_spacing2; d2++){
-                id_it++;
-                id_it_ele++;
-            }
-            id_it_row++;
-        }
-    }
-    id_row=id_it_row;
-    id_ele=id_it_ele;
-}
-
-// --------------------------------------------------
-                // Find ID end
-void Map_Elites::find_id_end(){
-    id_end=CC_vec.end()->bin;   //  TODO- Check to see if works
-    
-    int id_it=0;
-    int id_it_row=0;
-    int id_it_ele=0;
-    while(id_end!=id_it){
-        for(int d1=0; d1<num_spacing1; d1++){
-            id_it_ele=0;
-            for(int d2=0; d2<num_spacing2; d2++){
-                id_it++;
-                id_it_ele++;
-            }
-            id_it_row++;
-        }
-    }
-    id_end_row=id_it_row;
-    id_end_ele=id_it_ele;
-}
-// --------------------------------------------------
-                // Find Placement
-// find placement of id in CC_vec
-void Map_Elites::find_placement(int passed_id){
-    int id_it=0;
-    for(auto i = CC_vec.begin(); i != CC_vec.end(); i++){
-        if(passed_id==CC_vec.at(id_it).bin){
-            id_element=id_it;
-        }
-        else{
-            id_it++;
-        }
-    }
-    cout << endl << "id_element is: " << id_element << endl;
-}
-// --------------------------------------------------
-                // Check CC
-// check to see if id is already in quiver
-bool Map_Elites::check_CC(int passed_id){       // TODO - FIX
-    int id_it=0;
-    int in_CC=0;
-    for(auto i = CC_vec.begin(); i != CC_vec.end(); i++){
-        if(passed_id==CC_vec.at(id_it).bin){
-            in_CC=1;
-            return 0;
-        }
-        else{
-            id_it++;
-        }
-    }
-//    if(in_CC==0){
-//        return 1;
-//    }
-        return 1;
-}
-// --------------------------------------------------
-void Map_Elites::dynamic_CC(int rval, int eval){      // pass bin id
-    
-    if(check_CC(Map.at(rval).at(eval).id)==1){
-        add_CC(Map.at(rval).at(eval).id);
-    }
-    else{
-        cout << endl << "Bin is in CC_vec" << endl;
-    }
-    
-    calc_current_carrying_capacity();
-    
-    if (current_carrying_capacity_size != carrying_capacity_size){
-        Map.at(rval).at(eval).increase_quiver_size();     // increase quiver size - Map_space
-        find_placement(Map.at(rval).at(eval).id);         // find corresponding CC
-        CC_vec.at(id_element).increase_quiver_size();         // increase quiver size - CC
-    }
-    else if (Map.at(rval).at(eval).id != CC_vec.at(0).bin){
-        Map.at(rval).at(eval).increase_quiver_size();                   // increase quiver size of new - Map_space
-        CC_vec.at(0).decrease_quiver_size();                                // decrease quiver size of 0, most full - CC
-        find_id_0();                                                    // find id of CC.at(0)
-        Map.at(id_0_row).at(id_0_ele).decrease_quiver_size();           // decrease quiver size of 0, and delete last element in bin_quiver- Map_space
-        find_placement(Map.at(rval).at(eval).id);                       // find corresponding CC
-        CC_vec.at(id_element).increase_quiver_size();                       // increase quiver size of new - CC
-    }
-    else{
-        cout << endl << "Carrying Capacity of Bin is full" << endl; // Bin is 0, most full.
-    }
-    arrange_CC();
-    
-    // TODO - Run Tests -
-//    - 1) Total carrying capacities correspond. (quick operation)
-//    - 2) CC and Map_space correspond, bin and quiver size for each. (long operation)
-}
-// --------------------------------------------------
-                // Arrange Test CC
+            // Arrange Test CC
 bool sort_by_id(const Carrying_Capacity& a, const Carrying_Capacity& b){
     return a.bin < b.bin;
 }
@@ -685,8 +709,8 @@ void Map_Elites::arrange_test_CC_vec(){
     sort(test_CC_vec.begin(), test_CC_vec.end(), sort_by_id);
 }
 // --------------------------------------------------
-                // Test Quiver_size Correspond
-// long test, create a test vector from CC_vec, test each element to determine if quiver_size of CC_vec and Map are the same.
+            // Test Quiver_size Correspond
+    /// long test, create a test vector from CC_vec, test each element to determine if quiver_size of CC_vec and Map are the same.
 void Map_Elites::test_qsize_correspond(){
     test_CC_vec.clear();
     int it=0;
@@ -698,7 +722,7 @@ void Map_Elites::test_qsize_correspond(){
     
     int it2=0;
     for(auto ii = test_CC_vec.begin(); ii != test_CC_vec.end(); ii++){
-        find_id(test_CC_vec.at(it2).bin);
+        find_id(test_CC_vec.at(it2).bin);   // TODO - flag for debug
         if(test_CC_vec.at(it2).bin_quiver_size != Map.at(id_row).at(id_ele).quiver_size){
             cout << endl << "ERROR 12784902: QUIVER_SIZE NOT ALLIGNED" << endl;
         }
@@ -707,14 +731,10 @@ void Map_Elites::test_qsize_correspond(){
         }
         it2++;
     }
-    
 }
 // --------------------------------------------------
-
-
-// --------------------------------------------------
             // Individual from Map
-    //? gets an individual from a map_space in Map.
+    /// gets an individual from a map_space in Map.
 void Map_Elites::individual_from_map(int p1, int p2){
     int row_value=0;
     int element_value=0;
@@ -957,7 +977,7 @@ void Map_Elites::print_heat_map(){
 
 
 
-
+// TODO
 
 
 
@@ -976,7 +996,7 @@ void Map_Elites::print_corresponding_genome1(){
     cout << "print_corresponding_genome1.txt created." << endl;
 }
 // --------------------------------------------------
-            // Print corresponding genome1
+            // Print corresponding genome2
 void Map_Elites::print_corresponding_genome2(){
     ofstream myfile;
     myfile.open ("print_corresponding_genome2.txt");
@@ -991,7 +1011,7 @@ void Map_Elites::print_corresponding_genome2(){
     cout << "print_corresponding_genome2.txt created." << endl;
 }
 // --------------------------------------------------
-// Print corresponding genome1
+            // Print corresponding Bins
 void Map_Elites::print_corresponding_bins(){
     ofstream myfile;
     myfile.open ("print_corresponding_bins.txt");

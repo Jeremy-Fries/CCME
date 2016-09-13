@@ -34,32 +34,32 @@ protected:
 public:
 // --------------------------------------------------
     void display_space();
-    // Lower Bound 1
+            // Lower Bound 1
     void set_LB1(double);
     double get_LB1();
     void display_LB1();
-    // Lower Bound 2
+        // Lower Bound 2
     void set_LB2(double);
     double get_LB2();
     void display_LB2();
-    // Lower Bound 3
+        // Lower Bound 3
     void set_LB3(double);
     double get_LB3();
     void display_LB3();
-    // Upper Bound 1
+        // Upper Bound 1
     void set_UB1(double);
     double get_UB1();
     void display_UB1();
-    // Upper Bound 2
+        // Upper Bound 2
     void set_UB2(double);
     double get_UB2();
     void display_UB2();
-    // Upper Bound 3
+        // Upper Bound 3
     void set_UB3(double);
     double get_UB3();
     void display_UB3();
 // --------------------------------------------------
-    // Center of Bin
+        // Center of Bin
     void set_center_bin1(double c1);
     double get_center_bin1();
     void display_center_bin1();
@@ -69,10 +69,14 @@ public:
 // --------------------------------------------------
     void build_map_space();
 // --------------------------------------------------
+        // CCME
     void arrange_quiver();
     void set_quiver_size(int);
+    int get_quiver_size();
     void increase_quiver_size();
     void decrease_quiver_size();
+    // void print_bin_quiver();     // TODO- J 9/8
+    void check_if_in_quiver(int);
 // --------------------------------------------------
     void set_best_fit();
     double get_best_fit();
@@ -109,6 +113,7 @@ private:
     vector< vector <double> > previous_genome1,previous_genome2;
     vector <double> previous_fit_rating;
     
+        // CCME
     vector<Individual> bin_quiver;
     int quiver_size=0;
     double low_quiver_fitness;
@@ -117,7 +122,7 @@ private:
 // ------------------------------------------------------------------------------------------------ ^^ Declarations
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // ------------------------------------------------------------------------------------------------ vv Definitions
-// Display bounds of Map_space
+        // Display bounds of Map_space
 void Map_space::display_space(){
     display_LB1();
     display_UB1();
@@ -126,7 +131,7 @@ void Map_space::display_space(){
     display_LB3();
     display_UB3();
 }
-// Lower Bound 1
+        // Lower Bound 1
 void Map_space::set_LB1(double L1){
     LB1 = L1;
 }
@@ -136,7 +141,7 @@ double Map_space::get_LB1(){
 void Map_space::display_LB1(){
     cout << endl << "LB1 is: " << LB1 << endl;
 }
-// Lower Bound 2
+        // Lower Bound 2
 void Map_space::set_LB2(double L2){
     LB2 = L2;
 }
@@ -146,7 +151,7 @@ double Map_space::get_LB2(){
 void Map_space::display_LB2(){
     cout << endl << "LB2 is: " << LB2 << endl;
 }
-// Lower Bound 3
+        // Lower Bound 3
 void Map_space::set_LB3(double L3){
     LB3 = L3;
 }
@@ -156,7 +161,7 @@ double Map_space::get_LB3(){
 void Map_space::display_LB3(){
     cout << endl << "LB3 is: " << LB3 << endl;
 }
-// Upper Bound 1
+        // Upper Bound 1
 void Map_space::set_UB1(double U1){
     UB1 = U1;
 }
@@ -166,7 +171,7 @@ double Map_space::get_UB1(){
 void Map_space::display_UB1(){
     cout << endl << "UB1 is: " << UB1 << endl;
 }
-// Upper Bound 2
+        // Upper Bound 2
 void Map_space::set_UB2(double U2){
     UB2 = U2;
 }
@@ -176,7 +181,7 @@ double Map_space::get_UB2(){
 void Map_space::display_UB2(){
     cout << endl << "UB2 is: " << UB2 << endl;
 }
-// Upper Bound 3
+        // Upper Bound 3
 void Map_space::set_UB3(double U3){
     UB3 = U3;
 }
@@ -187,7 +192,7 @@ void Map_space::display_UB3(){
     cout << endl << "UB3 is: " << UB3 << endl;
 }
 // --------------------------------------------------
-// Center of Bin
+        // Center of Bin
 void Map_space::set_center_bin1(double c1){
     center_bin1 = c1;
 }
@@ -207,8 +212,8 @@ void Map_space::display_center_bin2(){
     cout << endl << "center bin 2 is: " << center_bin2 << endl;
 }
 // --------------------------------------------------
-// Build Map Space
-// Builds lower bound and uppper bound vector of Map_space, used to deterine where Map_space lies in Map.
+            // Build Map Space
+    /// Builds lower bound and uppper bound vector of Map_space, used to deterine where Map_space lies in Map.
 void Map_space::build_map_space(){
     LB_vec.push_back(LB1);
     LB_vec.push_back(LB2);
@@ -219,6 +224,7 @@ void Map_space::build_map_space(){
     //UB_vec.push_back(UB3);
 }
 // --------------------------------------------------
+            // Best Fit
 // If later a Map_space can hold many Individuals, best fitness rating map_space will be first element. Currently Map_space can hold only one Individual, so that will also lie in the first element. This function may not be used in the case of only one Individual.
 void Map_space::set_best_fit(){
     best_fit_rating=current_individual.at(0).get_fit_rating();
@@ -227,34 +233,41 @@ double Map_space::get_best_fit(){
     return best_fit_rating;
 }
 // --------------------------------------------------
+            // Quiver Size
 void Map_space::set_quiver_size(int q){
     quiver_size=q;
 }
-// --------------------------------------------------
+int Map_space::get_quiver_size(){
+    return quiver_size;
+}
+
 void Map_space::increase_quiver_size(){
     ++quiver_size;
 }
-// --------------------------------------------------
 void Map_space::decrease_quiver_size(){
     --quiver_size;
-    // delete last element in bin_quiver here?
-    bin_quiver.erase(bin_quiver.end());
+    bin_quiver.pop_back();
 }
 // --------------------------------------------------
+            // Arrange Quiver
+    /// arrange quiver from high to low fitness
 bool sort_by_fit(const Individual& a, const Individual& b){
     return a.fit_rating > b.fit_rating;
 }
-// --------------------------------------------------
 void Map_space::arrange_quiver(){
-// arrange quiver from high to low fitness
     sort(bin_quiver.begin(), bin_quiver.end(),sort_by_fit);
     
-    cout << endl << "quiver_size is: " << quiver_size << endl;
-    
-// set low and high values quiver values
+    /// set low and high values quiver values
     high_quiver_fitness=bin_quiver.at(0).fit_rating;
-    //low_quiver_fitness=bin_quiver.at(quiver_size).fit_rating;   // ERROR!!!! In bin_quiver both elements are the same... copied in arrange
-    low_quiver_fitness=bin_quiver.end()->fit_rating;
+    //low_quiver_fitness=bin_quiver.at(quiver_size).fit_rating;   // ERROR!!!! In bin_quiver both elements are the same... copied in arrange. // May be fixed.
+    low_quiver_fitness=bin_quiver.end()->fit_rating;    // TODO - check to see which low_quiver works better.
+}
+// --------------------------------------------------
+            // Check If In Quiver               // TODO - J 9/9
+void Map_space::check_if_in_quiver(int q){
+
+
+
 }
 // --------------------------------------------------
 // Compare New Individual
@@ -283,13 +296,12 @@ void Map_space::arrange_quiver(){
 
 // ***** Need to have function in Map_Elites that will "oversee" and set the capacity for the quiver_size.
 // *** May want to remove quiver function from being directly encoded into compare_new_individual().
-
-
-
+// --------------------------------------------------
+            // Compare New Individual
 void Map_space::compare_new_individual(Individual challenger){
-    
-    //cout << "COMPARE IN" << endl;
-    
+    cout << "---------- COMPARE IN ----------" << endl;
+    cout << "Bin ID is " << id << endl;
+    cout << "quiver_size is " << quiver_size << endl;
     // TODO - If statment for yes or no quiver.
     if(current_individual.size()>1){
         counter++;
@@ -298,19 +310,21 @@ void Map_space::compare_new_individual(Individual challenger){
         f1=current_individual.at(0).get_fit_rating();
         f2=current_individual.at(1).get_fit_rating();
         
-        if (f1>=f2){             //new Individual erased
+//        cout << "current best quiver fitness: " << current_individual.at(0).get_fit_rating() << endl;
+//        cout << "NEW quiver fitness: " << current_individual.at(1).get_fit_rating() << endl;
+        
+        if (f1>=f2){             //NEW Individual erased
             new_counter++;
-    // CCME function---------------------------------------------------------------- Start
-            // check if bin_quiver is full
+            /// check if bin_quiver is full
             if (bin_quiver.size()<quiver_size){
-                // if not full, add individual to quiver
+                /// if not full, add individual to quiver
                 bin_quiver.push_back(current_individual.at(1));
                 arrange_quiver(); // rearrange high to low fitness
             }
             else{
-                // if full, check to see if new individual has a better fitness, if so replace worst in quiver and rearrange high to low in vector.
-                if (current_individual.at(1).fit_rating>low_quiver_fitness) {
-                    bin_quiver.erase(bin_quiver.end());
+                /// if full, check to see if new individual has a better fitness, if so replace worst in quiver and rearrange high to low in vector.
+                if (current_individual.at(1).fit_rating>low_quiver_fitness) {   //  CCME 2
+                    bin_quiver.pop_back();
                     bin_quiver.push_back(current_individual.at(1));
                     arrange_quiver(); // rearrange high to low fitness
                 }
@@ -318,28 +332,27 @@ void Map_space::compare_new_individual(Individual challenger){
                     cout << endl << "individual less than low quiver" << endl;
                 }
             }
-
-            // quiver_addition() - will take in new individual, compare agaist current members and take in if condintions are met. // may not use..
-            // compare new individual to members of quiver - compare_bin_quiver
-//            bin_quiver.push_back()
-            
-            // CCME function-------------------------- End
             current_individual.erase(current_individual.begin()+1);
             //cout << endl << "new Individual erased" << endl;
         }
-        else if (f1<f2){        //old Individual erased
+        else if (f1<f2){        //OLD Individual erased
             old_counter++;
             // ------------------ place previous occupant into quiver
             if (bin_quiver.size()<quiver_size){
                 // if not full, add individual to quiver
-                bin_quiver.push_back(current_individual.at(0));
+                
+                // TODO - check to see if already in  quiver function - J 9/9
+                
+                bin_quiver.push_back(current_individual.at(0));     // J 9/9 - is this already in Quiver??
                 arrange_quiver(); // rearrange high to low fitness
             }
             else{
                 // if full, check to see if new individual has a better fitness, if so replace worst in quiver and rearrange high to low in vector.
                 if (current_individual.at(0).fit_rating>low_quiver_fitness) {
-                    bin_quiver.erase(bin_quiver.end());
-                    bin_quiver.push_back(current_individual.at(0));
+                    
+                    // TODO - check to see if already in  quiver function - J 9/9
+                    bin_quiver.pop_back();
+                    bin_quiver.push_back(current_individual.at(0));     // JJ 9/9 - is this already in Quiver??
                     arrange_quiver(); // rearrange high to low fitness
                 }
                 else{
@@ -366,15 +379,31 @@ void Map_space::compare_new_individual(Individual challenger){
     }       // LYJF
     else{
        // add to bin_quiver, quiver might be down 1.
-        bin_quiver.push_back(current_individual.at(0));     // JFJF - check to see if better way.
+        bin_quiver.push_back(current_individual.at(0));
         current_individual.at(0).parents_fitness.push_back(challenger.fit_rating);
         current_individual.at(0).parents_id.push_back(challenger.home_id);
     }
+    cout << "low quiver fitness: " << low_quiver_fitness << endl;
+    cout << "high quiver fitness: " << high_quiver_fitness << endl;
     set_best_fit();
+    
+    cout << "---------- COMPARE OUT ----------" << endl;
 }
 // --------------------------------------------------
-// Counter
-// Counts how many times a Map_space has been accessed to place an Individual.
+//void Map_space::print_bin_quiver(){                       // TODO - J 9/8
+//    ofstream myfile;
+//    myfile.open ("Bin_Quiver.txt");
+//    for(int i=0; i<bin_quiver.size(); i++){
+//        myfile << bin_quiver.at(i).bin << '\t';
+//        myfile << CC_vec.at(i).bin_quiver_size << '\n';
+//    }
+//    myfile.close();
+//    cout << "CC_vec.txt file created." << endl;
+//}
+
+// --------------------------------------------------
+            // Counter
+    /// Counts how many times a Map_space has been accessed to place an Individual.
 // TODO - 2 seperate counters, one that counts how many times the one being placed is better, possible tuning of mutation.
 int Map_space::get_counter(){
     return counter;
@@ -401,7 +430,7 @@ void Map_space::display_mutation_counter(){
     cout << endl << "Number of times bin has been mutated: " << mutate_counter << endl;
 }
 // --------------------------------------------------
-// Stat_run
+            // Stat_run
 void Map_space::set_stat_run(int s){
     stat_run=s;
 }
@@ -409,7 +438,8 @@ int Map_space::get_stat_run(){
     return stat_run;
 }
 // --------------------------------------------------
-// ID number, associated with bin location
+            // ID number
+    /// associated with bin location
 void Map_space::set_id(int i){
     id=i;
 }
@@ -417,7 +447,7 @@ int Map_space::get_id(){
     return id;
 }
 // --------------------------------------------------
-// Full Bin Check
+            // Full Bin Check
 int Map_space::full_bin_check(){
     if (current_individual.empty()){
         return 1;
@@ -427,10 +457,6 @@ int Map_space::full_bin_check(){
         return 0;
     }
 }
-// --------------------------------------------------
-
-
-
 // --------------------------------------------------
 
 

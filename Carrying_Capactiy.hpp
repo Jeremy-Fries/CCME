@@ -48,9 +48,11 @@ private:
 
 void Carrying_Capacity::decrease_quiver_size(){
     --bin_quiver_size;
+    //cout << endl << "CC - quiver_size of Decrease is: " << bin_quiver_size;
 }
 void Carrying_Capacity::increase_quiver_size(){
     ++bin_quiver_size;
+    //cout << endl << "CC - quiver_size of Increase is: " << bin_quiver_size;
 }
 
 #endif /* Carrying_Capactiy_hpp */
